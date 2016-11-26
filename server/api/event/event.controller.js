@@ -107,7 +107,10 @@ function getEventByDatesRangeAndType(req, res) {
   var skip = Number(req.params.skip);
   _eventType2.default.findOne({ eventTypeName: eventType }).then(function (response) {
     if (!response) {
-      handleError(res)({ 'error': 'No such event type' });
+      handleError(res)({
+        events: [],
+        total: 0
+      });
     } else {
       var query = { "startDate": { "$gte": dateFrom, "$lt": dateTo }, 'eventType': response._id };
       getSearch(res, query, limit, skip);
@@ -118,7 +121,7 @@ function getEventByDatesRangeAndType(req, res) {
 };
 
 function getSearch(res, query, limit, skip) {
-  return _event2.default.find(query).limit(limit).skip(skip).populate('eventType performer location website').exec(function (err, events) {
+  return _event2.default.find(query).sort({ 'startDate': 'desc' }).limit(limit).skip(skip).populate('eventType performer location website').exec(function (err, events) {
     _event2.default.count(query).exec(function (err, count) {
       res.status(200).json({
         events: events,

@@ -48,7 +48,6 @@ function scrape(url, cb) {
       console.log("error:", err);
       return cb(err);
     }
-
     // 2. Parse the HTML
     var $ = cheerio.load(body),
         pageData = [];
