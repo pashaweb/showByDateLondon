@@ -15,7 +15,7 @@ var EventSchema = new _mongoose2.default.Schema({
   name: String,
   url: String,
   location: { type: _mongoose2.default.Schema.Types.ObjectId, ref: 'Location' },
-  startDate: Date,
+  startDate: Number,
   performer: [{ type: _mongoose2.default.Schema.Types.ObjectId, ref: 'Performer' }],
   website: { type: _mongoose2.default.Schema.Types.ObjectId, ref: 'Website' },
   price: String,

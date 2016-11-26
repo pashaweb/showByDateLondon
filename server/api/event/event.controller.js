@@ -28,6 +28,10 @@ var _event = require('./event.model');
 
 var _event2 = _interopRequireDefault(_event);
 
+var _eventType = require('../eventType/eventType.model');
+
+var _eventType2 = _interopRequireDefault(_eventType);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var moment = require('moment');
@@ -82,6 +86,7 @@ function handleEntityNotFound(res) {
 }
 
 function handleError(res, statusCode) {
+  console.log(res);
   statusCode = statusCode || 500;
   return function (err) {
     res.status(statusCode).send(err);
@@ -94,12 +99,25 @@ function index(req, res) {
 }
 
 function getEventByDatesRangeAndType(req, res) {
-  var dateFrom = moment.unix(req.params.dateFrom / 1000).toDate();
-  var type = req.params.eventType;
-  var dateTo = moment.unix(req.params.dateTo / 1000).toDate();
-  var query = { "startDate": { "$gte": dateFrom, "$lt": dateTo } };
+  var dateFrom = req.params.dateFrom; //moment.unix(req.params.dateFrom / 1000).toDate();
+  var eventType = req.params.eventType;
+  var dateTo = req.params.dateTo; // moment.unix(req.params.dateTo / 1000).toDate();
+
   var limit = Number(req.params.limit);
   var skip = Number(req.params.skip);
+  _eventType2.default.findOne({ eventTypeName: eventType }).then(function (response) {
+    if (!response) {
+      handleError(res)({ 'error': 'No such event type' });
+    } else {
+      var query = { "startDate": { "$gte": dateFrom, "$lt": dateTo }, 'eventType': response._id };
+      getSearch(res, query, limit, skip);
+    }
+  }, function (response) {
+    handleError(res);
+  });
+};
+
+function getSearch(res, query, limit, skip) {
   return _event2.default.find(query).limit(limit).skip(skip).populate('eventType performer location website').exec(function (err, events) {
     _event2.default.count(query).exec(function (err, count) {
       res.status(200).json({

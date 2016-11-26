@@ -7,11 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.job = job;
 
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _website = require('../api/website/website.model');
+var _website = require("../api/website/website.model");
 
 var _website2 = _interopRequireDefault(_website);
 
@@ -20,12 +16,28 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var cheerio = require("cheerio"),
     req = require("tinyreq");
 var webSiteName = "tickets.london";
+var sitePrefix = 'http://tickets.london';
 var webSiteID = "";
 var async = require('async');
 var saveToDB = require('./util/saveToDB');
-var moment = require('moment');
+var moment = require('moment-timezone');
 var page = 0;
 var resp;
+var types = [{
+  eventType: 'SportEvent',
+  performerType: 'sportPerformer',
+  link: 'http://tickets.london/search?browseorder=soonest&dend=26%2F12%2F2016&distance=0&availableonly=False&showfavourites=True&se=False&s=sport&pageSize=30&pageIndex='
+}, {
+  eventType: 'TheatreEvent',
+  performerType: 'TheatrePerformer',
+  link: 'http://tickets.london/search?browseorder=soonest&dend=26%2F12%2F2016&distance=0&availableonly=False&showfavourites=True&se=False&s=theatre&pageSize=30&pageIndex='
+}, {
+  eventType: 'MusicEvent',
+  performerType: 'MusicPerformer',
+  link: 'http://tickets.london/search?browseorder=soonest&dend=26%2F12%2F2016&distance=0&availableonly=False&showfavourites=True&se=False&s=music&pageSize=30&pageIndex='
+}];
+var index = 0;
+var currentType = types[0];
 // Define the scrape function
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -35,15 +47,13 @@ function respondWithResult(res, statusCode) {
     }
   };
 }
-
 function handleError(res, statusCode) {
   statusCode = statusCode || 500;
   return function (err) {
     res.status(statusCode).send(err);
   };
 }
-
-function scrape(url, data, cb) {
+function scrape(url, cb) {
   // 1. Create the request
   req(url, function (err, body) {
     if (err) {
@@ -54,19 +64,50 @@ function scrape(url, data, cb) {
     // 2. Parse the HTML
     var $ = cheerio.load(body),
         pageData = [];
-    var count = $("#event-listings li[title]").length;
-    if (count > 0) {
-      $("#event-listings li[title]").each(function (i, elem) {
-        var el = cheerio.load($(this).html());
-        var obj = JSON.parse(el(".microformat script").text());
-        obj = obj[0];
-        obj.url = "https://www.songkick.com" + el(".thumb").attr("href");
-        obj.eventImage = el('.thumb img').attr("src");
-        pageData.push(obj);
-      });
-      cb(null, pageData);
-    } else {
+    var events = $('#search-results .results-div, #search-results article');
+    if (events.length == 0) {
+      console.log('events.length', events.length);
       cb(true, "no more data");
+    } else {
+      (function () {
+        var datePre = [];
+        var arr = [];
+        events.each(function (i, element) {
+          ///console.log(element.attribs.class)
+          if (element.attribs.class === 'results-div') {
+            var el = cheerio.load($(this).html());
+            datePre = el('span').text().trim().split(' ');
+            //console.log(el('span').text().trim());
+          } else {
+            var _el = cheerio.load($(this).html());
+            var p = _el('p');
+            var date = moment(datePre[1] + ' ' + p[1].children[0].data, 'YYYY dddd Do MMMM at h:mm A').format('x');
+            if (!isNaN(date)) {
+              var obj = {
+                '@type': currentType.eventType,
+                name: _el('h3 a').text(),
+                url: sitePrefix + _el('h3 a').attr("href"),
+                location: {
+                  "name": _el('p a').text(),
+                  "link": _el('p a').attr("href")
+                },
+                startDate: date,
+                performer: {
+                  '@type': currentType.performerType,
+                  'name': sitePrefix + _el('h3 a').text(),
+                  'sameAs': sitePrefix + _el('h3 a').attr("href")
+                },
+                price: '',
+                eventImage: _el('img').attr("src"),
+                active: true,
+                website: webSiteID
+              };
+              arr.push(obj);
+            }
+          }
+        });
+        cb(null, arr);
+      })();
     }
   });
 }
@@ -85,10 +126,10 @@ function getWebSiteID(res) {
     } else {
       _website2.default.create({
         name: webSiteName,
-        websiteUrl: "http://www.visitlondon.com",
+        websiteUrl: "http://tickets.london",
         rating: 5,
-        logoUrl: "https://pbs.twimg.com/profile_images/771414363307708416/MxAAQdjT.jpg",
-        defaultImageUrl: "http://assets.sk-static.com/assets/default_images/huge_avatar/default-event-798b09a.png",
+        logoUrl: "",
+        defaultImageUrl: "",
         active: true
       }).then(function (response) {
         webSiteID = response._id;
@@ -100,30 +141,36 @@ function getWebSiteID(res) {
 function job(req, res) {
   console.log("Started");
   page = 0;
+  index = 0;
+  currentType = types[0];
   getWebSiteID();
   resp = res;
   return res.status(200).json({ message: "process started" });
 }
-
+function goToNextCategory() {
+  index = index + 1;
+  currentType = types[index];
+  page = 0;
+  getHtmlPage();
+}
 function getHtmlPage() {
   page++;
-  console.log("Get Page:", page);
-  scrape("http://tickets.london/search?browseorder=soonest&distance=0&availableonly=False&se=False&pageSize=30&c=3&c=156&pageIndex=" + page, {
-    //scrape("http://www.w3schools.com/", {
-    // Get the website title (from the top header)
-    title: "a.w3schools-logo"
-    // ...and the description
-    , description: ".listing li"
-  }, function (err, data) {
+  //console.log("Get Page:", page);
+  //console.log('Page:', currentType.link + page.toString());
+  scrape(currentType.link + page.toString(), function (err, data) {
 
-    //check the db for a songlick website
     if (err) {
+      console.log(index);
+      if (index < 2) {
+        goToNextCategory();
+      } else {
+        console.log("End of process");
+        return;
+      }
       //process.exit();
-      console.log("End of process");
-      return;
     } else {
       /// parceResult(data);
-      // saveToDB.save(data, webSiteID, getHtmlPage);
+      saveToDB.save(data, webSiteID, getHtmlPage);
     }
   });
 }
