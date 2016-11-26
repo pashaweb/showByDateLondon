@@ -28,7 +28,7 @@ var types = [{
   performerType: 'sportPerformer',
   link: 'http://tickets.london/search?browseorder=soonest&dend=26%2F12%2F2016&distance=0&availableonly=False&showfavourites=True&se=False&s=sport&pageSize=30&pageIndex='
 }, {
-  eventType: 'TheatreEvent',
+  eventType: 'TheaterEvent',
   performerType: 'TheatrePerformer',
   link: 'http://tickets.london/search?browseorder=soonest&dend=26%2F12%2F2016&distance=0&availableonly=False&showfavourites=True&se=False&s=theatre&pageSize=30&pageIndex='
 }, {
