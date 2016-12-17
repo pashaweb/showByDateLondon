@@ -16,7 +16,7 @@ var async = require('async'); /**
                                */
 function getID(list, cb) {
   var idsList = [];
-  console.log(list.length);
+  //console.log(list.length)
   async.eachSeries(list, function (item, next) {
     _performer2.default.findOne({ name: item.name }).then(function (res) {
       if (res !== null) {
@@ -30,14 +30,14 @@ function getID(list, cb) {
           active: true
         }).then(function (res) {
           //console.log("Per Created arr: ", res[0].id);
-          console.log("Per Created: ", res.id);
+          //console.log("Per Created: ", res.id);
           idsList.push(res._id);
           next();
         });
       }
     });
   }, function (err) {
-    console.log(idsList);
+    //console.log(idsList)
     cb(null, idsList);
   });
 }
