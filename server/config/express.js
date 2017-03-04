@@ -5,74 +5,74 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
 exports.default = function (app) {
-  var env = app.get('env');
+    var env = app.get('env');
 
-  if (env === 'development' || env === 'test') {
-    app.use(_express2.default.static(_path2.default.join(_environment2.default.root, '.tmp')));
-  }
+    if (env === 'development' || env === 'test') {
+        app.use(_express2.default.static(_path2.default.join(_environment2.default.root, '.tmp')));
+    }
 
-  if (env === 'production') {
-    app.use((0, _serveFavicon2.default)(_path2.default.join(_environment2.default.root, 'client', 'favicon.ico')));
-  }
+    if (env === 'production') {
+        app.use((0, _serveFavicon2.default)(_path2.default.join(_environment2.default.root, 'client', 'favicon.ico')));
+    }
 
-  app.set('appPath', _path2.default.join(_environment2.default.root, 'client'));
-  app.use(_express2.default.static(app.get('appPath')));
-  app.use((0, _morgan2.default)('dev'));
+    app.set('appPath', _path2.default.join(_environment2.default.root, 'client'));
+    app.use(_express2.default.static(app.get('appPath')));
+    app.use((0, _morgan2.default)('dev'));
 
-  app.set('views', _environment2.default.root + '/server/views');
-  app.engine('html', require('ejs').renderFile);
-  app.set('view engine', 'html');
-  app.use((0, _compression2.default)());
-  app.use(_bodyParser2.default.urlencoded({ extended: false }));
-  app.use(_bodyParser2.default.json());
-  app.use((0, _methodOverride2.default)());
-  app.use((0, _cookieParser2.default)());
+    app.set('views', _environment2.default.root + '/server/views');
+    app.engine('html', require('ejs').renderFile);
+    app.set('view engine', 'html');
+    app.use((0, _compression2.default)());
+    app.use(_bodyParser2.default.urlencoded({ extended: false }));
+    app.use(_bodyParser2.default.json());
+    app.use((0, _methodOverride2.default)());
+    app.use((0, _cookieParser2.default)());
 
-  // Persist sessions with MongoStore / sequelizeStore
-  // We need to enable sessions for passport-twitter because it's an
-  // oauth 1.0 strategy, and Lusca depends on sessions
-  app.use((0, _expressSession2.default)({
-    secret: _environment2.default.secrets.session,
-    saveUninitialized: true,
-    resave: false,
-    store: new MongoStore({
-      mongooseConnection: _mongoose2.default.connection,
-      db: 'show-by-date'
-    })
-  }));
-
-  /**
-   * Lusca - express server security
-   * https://github.com/krakenjs/lusca
-   */
-  if (env !== 'test' && !process.env.SAUCE_USERNAME) {
-    app.use((0, _lusca2.default)({
-      csrf: {
-        angular: true
-      },
-      xframe: 'SAMEORIGIN',
-      hsts: {
-        maxAge: 31536000, //1 year, in seconds
-        includeSubDomains: true,
-        preload: true
-      },
-      xssProtection: true
+    // Persist sessions with MongoStore / sequelizeStore
+    // We need to enable sessions for passport-twitter because it's an
+    // oauth 1.0 strategy, and Lusca depends on sessions
+    app.use((0, _expressSession2.default)({
+        secret: _environment2.default.secrets.session,
+        saveUninitialized: true,
+        resave: false,
+        store: new MongoStore({
+            mongooseConnection: _mongoose2.default.connection,
+            db: 'show-by-date'
+        })
     }));
-  }
 
-  if ('development' === env) {
-    app.use(require('connect-livereload')({
-      ignore: [/^\/api\/(.*)/, /\.js(\?.*)?$/, /\.css(\?.*)?$/, /\.svg(\?.*)?$/, /\.ico(\?.*)?$/, /\.woff(\?.*)?$/, /\.png(\?.*)?$/, /\.jpg(\?.*)?$/, /\.jpeg(\?.*)?$/, /\.gif(\?.*)?$/, /\.pdf(\?.*)?$/]
-    }));
-  }
+    /**
+     * Lusca - express server security
+     * https://github.com/krakenjs/lusca
+     */
+    if (env !== 'test' && !process.env.SAUCE_USERNAME) {
+        app.use((0, _lusca2.default)({
+            // csrf: {
+            //   angular: true
+            // },
+            xframe: 'SAMEORIGIN',
+            hsts: {
+                maxAge: 31536000, //1 year, in seconds
+                includeSubDomains: true,
+                preload: true
+            },
+            xssProtection: true
+        }));
+    }
 
-  if ('development' === env || 'test' === env) {
-    app.use((0, _errorhandler2.default)()); // Error handler - has to be last
-  }
+    if ('development' === env) {
+        app.use(require('connect-livereload')({
+            ignore: [/^\/api\/(.*)/, /\.js(\?.*)?$/, /\.css(\?.*)?$/, /\.svg(\?.*)?$/, /\.ico(\?.*)?$/, /\.woff(\?.*)?$/, /\.png(\?.*)?$/, /\.jpg(\?.*)?$/, /\.jpeg(\?.*)?$/, /\.gif(\?.*)?$/, /\.pdf(\?.*)?$/]
+        }));
+    }
+
+    if ('development' === env || 'test' === env) {
+        app.use((0, _errorhandler2.default)()); // Error handler - has to be last
+    }
 };
 
 var _express = require('express');

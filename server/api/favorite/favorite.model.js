@@ -10,14 +10,11 @@ var _mongoose2 = _interopRequireDefault(_mongoose);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var PerformerSchema = new _mongoose2.default.Schema({
-    type: String,
+var FavoriteSchema = new _mongoose2.default.Schema({
     name: String,
     name_lower: String,
-    favorite: Boolean,
-    link: String,
     active: Boolean
 });
 
-exports.default = _mongoose2.default.model('Performer', PerformerSchema);
-//# sourceMappingURL=performer.model.js.map
+exports.default = _mongoose2.default.model('Favorite', FavoriteSchema);
+//# sourceMappingURL=favorite.model.js.map
