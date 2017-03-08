@@ -25,6 +25,7 @@ function save(arr, websiteID, cb) {
         var outItem = {};
         async.waterfall([function (callback) {
             var tempName = item.name.toLowerCase();
+            var query = item['@type'] == 'TheaterEvent' ? { name_lower: tempName } : { name_lower: tempName, startDate: item.startDate, endDate: item.endDate };
             _event2.default.findOne({ name_lower: tempName, startDate: item.startDate, endDate: item.endDate }).then(function (response) {
                 if (response !== null) {
                     callback(true);
