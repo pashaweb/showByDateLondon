@@ -25,7 +25,12 @@ var venues = new _map2.default();
 var events = [];
 var webSiteID = "";
 var websiteUrl = "http://www.ticketmaster.co.uk";
-var config = [{ url: 'http://www.ticketmaster.co.uk/json/browse/sports?select=n186&dma_id=602', eventType: 'SportEvent', performerType: 'SportPerformer' }, { url: 'http://www.ticketmaster.co.uk/json/browse/music?select=n186&dma_id=602', eventType: 'MusicEvent', performerType: 'MusicPerformer' }, { url: 'http://www.ticketmaster.co.uk/json/browse/arts?select=n186&dma_id=602', eventType: 'TheaterEvent', performerType: 'TheaterPerformer' }];
+var args = {
+    headers: {
+        'Content-Type': 'application/json'
+    }
+};
+var config = [{ url: 'http://www.ticketmaster.co.uk/json/browse/sports?&dma_id=602', eventType: 'SportEvent', performerType: 'SportPerformer' }, { url: 'http://www.ticketmaster.co.uk/json/browse/music?&dma_id=602', eventType: 'MusicEvent', performerType: 'MusicPerformer' }, { url: 'http://www.ticketmaster.co.uk/json/browse/arts?&dma_id=602', eventType: 'TheaterEvent', performerType: 'TheaterPerformer' }];
 var currentConfigIndex = 0;
 
 function job(req, res) {
@@ -56,7 +61,8 @@ function getWebSiteID(res) {
 }
 
 function getEvents() {
-    client.get(config[currentConfigIndex].url, function (data, response) {
+    client.get(config[currentConfigIndex].url, args, function (data, response) {
+        debugger;
         events = data.response.docs.map(function (ev) {
             //let venue = venues.get(ev.VenueId);
             var eventName = ev.AttractionName[ev.AttractionName.length - 1];
